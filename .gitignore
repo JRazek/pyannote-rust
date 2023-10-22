@@ -1,0 +1,9 @@
+*
+!src
+!src/**
+!Cargo.toml
+!Cargo.lock
+!model.onnx
+!.gitignore
+!python
+!python/**
