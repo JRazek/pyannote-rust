@@ -13,6 +13,7 @@ use std::fs::File;
 mod plot;
 
 use pyannote_rust::pyannote::Pyannote;
+use pyannote_rust::pyannote::PyannoteInput;
 
 //(1, 293, 3)
 
@@ -86,7 +87,9 @@ fn main() {
 
     let array = Array1::from_iter((0..80000).into_iter().map(|x| x as f32));
 
-    let output = pyannote.run(array).unwrap();
+    let pyannote_input = PyannoteInput::try_from_array1(array).unwrap();
+
+    let output = pyannote.run(pyannote_input).unwrap();
 
     println!("{:?}", output);
 }

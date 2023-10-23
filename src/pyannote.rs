@@ -13,14 +13,33 @@ use onnxruntime::TensorElementDataType;
 use crate::error::PyannoteError;
 
 use onnxruntime::error::OrtError;
+use onnxruntime::ndarray::ShapeError;
 
 pub struct Pyannote<'a> {
     session: OnnxSession<'a>,
 }
 
+pub struct FusedSizeArray1<T, const N: usize> {
+    pub data: Array1<T>,
+}
+
+impl<T, const N: usize> FusedSizeArray1<T, N> {
+    pub fn try_from_array1(data: Array1<T>) -> Result<Self, ShapeError> {
+        let arr = data.into_shape(N)?;
+
+        Ok(Self { data: arr })
+    }
+}
+
+pub type PyannoteInput = FusedSizeArray1<f32, 80000>;
+
 impl Pyannote<'_> {
-    pub fn run(&mut self, input: Array1<f32>) -> Result<Array3<f32>, PyannoteError> {
-        let input_tensor = input.into_shape((1, 1, 80000))?;
+    pub fn run(&mut self, input: PyannoteInput) -> Result<Array3<f32>, PyannoteError> {
+        let input_tensor = input
+            .data
+            .into_shape((1, 1, 80000))
+            .expect("shape error, it should not happen!");
+
         let outputs: Vec<onnxruntime::tensor::OrtOwnedTensor<f32, _>> =
             self.session.run(vec![input_tensor])?;
 
